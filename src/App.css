@@ -564,3 +564,192 @@ td {
 .details-ticket strong {
   color: #172b4d;
 }
+
+/* ─── Badges de rôle ───────────────────────────────────────────────────────── */
+.role-badge {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 20px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.role-agent {
+  background: #e0f2fe;
+  color: #0369a1;
+}
+
+.role-utilisateur {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+/* ─── Bouton danger ────────────────────────────────────────────────────────── */
+.bouton-danger {
+  padding: 10px 13px;
+  border: 1px solid #fda29b;
+  border-radius: 7px;
+  background: white;
+  color: #b42318;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.bouton-danger:hover {
+  background: #fff1f0;
+}
+
+/* ─── Modal large (deux colonnes) ─────────────────────────────────────────── */
+.modal-large {
+  width: min(100%, 860px);
+}
+
+.modal-corps-deux-colonnes {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 28px;
+  align-items: start;
+}
+
+@media (max-width: 700px) {
+  .modal-corps-deux-colonnes {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ─── Section commentaires ────────────────────────────────────────────────── */
+.section-commentaires {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  border-left: 1px solid #eef0f3;
+  padding-left: 24px;
+}
+
+.section-commentaires h3 {
+  margin: 0;
+  color: #172b4d;
+  font-size: 15px;
+}
+
+.liste-commentaires {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 280px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.commentaire {
+  padding: 10px 13px;
+  border-radius: 8px;
+  background: #f8fafc;
+  border: 1px solid #eef0f3;
+}
+
+.commentaire.mien {
+  background: #eaf5f7;
+  border-color: #c8e6ed;
+}
+
+.commentaire-entete {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.commentaire-entete strong {
+  color: #172b4d;
+  font-size: 12px;
+}
+
+.commentaire-entete time {
+  color: #98a2b3;
+  font-size: 10px;
+}
+
+.commentaire p {
+  margin: 0;
+  color: #475467;
+  font-size: 12px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
+/* ─── Formulaire commentaire ───────────────────────────────────────────────── */
+.form-commentaire {
+  display: grid;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.form-commentaire textarea {
+  padding: 10px 12px;
+  border: 1px solid #d0d5dd;
+  border-radius: 7px;
+  color: #344054;
+  font-size: 13px;
+  font-family: inherit;
+  resize: vertical;
+  outline-color: #176b87;
+}
+
+.form-commentaire .bouton-principal {
+  justify-self: end;
+  padding: 9px 14px;
+  font-size: 12px;
+}
+
+.form-commentaire .bouton-principal:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ─── Comptes démo ─────────────────────────────────────────────────────────── */
+.demo-comptes {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid #eef0f3;
+}
+
+.demo-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.demo-compte {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px;
+  border: 1px solid #eef0f3;
+  border-radius: 8px;
+  background: #f8fafc;
+  font-size: 11px;
+  color: #475467;
+}
+
+.demo-compte code {
+  background: #eef0f3;
+  padding: 1px 5px;
+  border-radius: 4px;
+  font-family: monospace;
+  font-size: 11px;
+  color: #172b4d;
+}
+
+/* ─── Profil info ──────────────────────────────────────────────────────────── */
+.profil-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}

@@ -1,0 +1,49 @@
+# -----------------------------------------------------------------------
+# Ingress – Point d'entrée HTTP/HTTPS externe (optionnel)
+#
+# Prérequis : un Ingress Controller doit être installé dans le cluster.
+#   - kind   : kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/kind/deploy.yaml
+#   - Minikube : minikube addons enable ingress
+#
+# Pour activer HTTPS avec cert-manager :
+#   1. Installer cert-manager
+#   2. Créer un ClusterIssuer Let's Encrypt
+#   3. Décommenter les annotations TLS ci-dessous
+# -----------------------------------------------------------------------
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: helpdesk-ingress
+  namespace: helpdesk
+  labels:
+    app.kubernetes.io/name: helpdesk
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    # Redirection HTTP → HTTPS (décommenter en production)
+    # nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    # Taille maximale du corps de requête
+    nginx.ingress.kubernetes.io/proxy-body-size: "10m"
+    # En-têtes de sécurité
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      add_header X-Frame-Options "SAMEORIGIN" always;
+      add_header X-Content-Type-Options "nosniff" always;
+      add_header X-XSS-Protection "1; mode=block" always;
+      add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: helpdesk.exemple.tn       # Remplace par ton domaine
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: web
+                port:
+                  number: 8080
+  # TLS – décommenter et adapter en production
+  # tls:
+  #   - hosts:
+  #       - helpdesk.exemple.tn
+  #     secretName: helpdesk-tls-cert

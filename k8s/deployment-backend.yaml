@@ -1,0 +1,86 @@
+# -----------------------------------------------------------------------
+# Deployment – Backend Express.js (API REST)
+# -----------------------------------------------------------------------
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend
+  namespace: helpdesk
+  labels:
+    app.kubernetes.io/name: helpdesk
+    app.kubernetes.io/component: backend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: backend
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  template:
+    metadata:
+      labels:
+        app: backend
+        app.kubernetes.io/component: backend
+    spec:
+      serviceAccountName: helpdesk-backend
+      # Sécurité : non-root
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+      containers:
+        - name: backend
+          # L'image est mise à jour par la pipeline GitLab CI
+          image: registry.gitlab.com/YOUR_GROUP/helpdesk-devsecops/backend:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 3000
+          env:
+            - name: PORT
+              value: "3000"
+            - name: DB_HOST
+              value: "db"
+            - name: DB_PORT
+              value: "5432"
+            - name: DB_NAME
+              value: "helpdesk"
+            - name: DB_USER
+              value: "helpdesk"
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: helpdesk-db
+                  key: DB_PASSWORD
+            - name: CORS_ORIGIN
+              value: "http://web:8080"
+            # NODE_ENV production désactive les traces d'erreur détaillées
+            - name: NODE_ENV
+              value: "production"
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "500m"
+          livenessProbe:
+            httpGet:
+              path: /api/health
+              port: 3000
+            initialDelaySeconds: 15
+            periodSeconds: 20
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /api/health
+              port: 3000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+      imagePullSecrets:
+        - name: gitlab-registry

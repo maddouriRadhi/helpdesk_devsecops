@@ -1,0 +1,136 @@
+# -----------------------------------------------------------------------
+# NetworkPolicy – Sécurité réseau dans le namespace helpdesk
+#
+# Stratégie : Deny-all par défaut, puis autoriser uniquement les flux
+# nécessaires (principe du moindre privilège).
+#
+# Flux autorisés :
+#   Internet → Ingress → web (8080)
+#   web → backend (3000)
+#   backend → db (5432)
+# -----------------------------------------------------------------------
+
+# 1. Deny-all : bloquer tout le trafic entrant et sortant par défaut
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-all
+  namespace: helpdesk
+spec:
+  podSelector: {}      # Sélectionne tous les pods du namespace
+  policyTypes:
+    - Ingress
+    - Egress
+---
+# 2. Autoriser le trafic entrant vers le pod web (depuis Ingress / kube-system)
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-ingress-to-web
+  namespace: helpdesk
+spec:
+  podSelector:
+    matchLabels:
+      app: web
+  policyTypes:
+    - Ingress
+  ingress:
+    - ports:
+        - protocol: TCP
+          port: 8080
+---
+# 3. Autoriser le trafic sortant du pod web vers le backend
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-web-to-backend
+  namespace: helpdesk
+spec:
+  podSelector:
+    matchLabels:
+      app: web
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - podSelector:
+            matchLabels:
+              app: backend
+      ports:
+        - protocol: TCP
+          port: 3000
+    # Autoriser la résolution DNS (kube-dns)
+    - ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+---
+# 4. Autoriser le trafic entrant vers le backend (depuis web seulement)
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-web-ingress-to-backend
+  namespace: helpdesk
+spec:
+  podSelector:
+    matchLabels:
+      app: backend
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app: web
+      ports:
+        - protocol: TCP
+          port: 3000
+---
+# 5. Autoriser le trafic sortant du backend vers la base de données
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-backend-to-db
+  namespace: helpdesk
+spec:
+  podSelector:
+    matchLabels:
+      app: backend
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - podSelector:
+            matchLabels:
+              app: db
+      ports:
+        - protocol: TCP
+          port: 5432
+    # Autoriser la résolution DNS
+    - ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+---
+# 6. Autoriser le trafic entrant vers la base (depuis backend seulement)
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-backend-ingress-to-db
+  namespace: helpdesk
+spec:
+  podSelector:
+    matchLabels:
+      app: db
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app: backend
+      ports:
+        - protocol: TCP
+          port: 5432

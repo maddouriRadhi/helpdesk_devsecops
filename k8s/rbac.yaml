@@ -1,0 +1,92 @@
+# -----------------------------------------------------------------------
+# RBAC – Contrôle d'accès basé sur les rôles (Kubernetes)
+#
+# Principe du moindre privilège :
+#   - helpdesk-backend : ServiceAccount du backend (lit les secrets)
+#   - helpdesk-web : ServiceAccount du frontend (aucun droit)
+#   - helpdesk-deploy : ServiceAccount pour la pipeline GitLab CI/CD
+# -----------------------------------------------------------------------
+
+# --- ServiceAccounts ------------------------------------------------
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: helpdesk-backend
+  namespace: helpdesk
+  labels:
+    app.kubernetes.io/name: helpdesk
+    app.kubernetes.io/component: backend
+automountServiceAccountToken: false
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: helpdesk-web
+  namespace: helpdesk
+  labels:
+    app.kubernetes.io/name: helpdesk
+    app.kubernetes.io/component: web
+automountServiceAccountToken: false
+---
+# ServiceAccount utilisé par la pipeline GitLab CI pour déployer
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: helpdesk-deploy
+  namespace: helpdesk
+  labels:
+    app.kubernetes.io/name: helpdesk
+    app.kubernetes.io/component: cicd
+
+---
+# --- Role pour la pipeline CI/CD (kubectl apply, set image, rollout) ---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: helpdesk-deploy-role
+  namespace: helpdesk
+  labels:
+    app.kubernetes.io/name: helpdesk
+rules:
+  # Droits sur les Deployments
+  - apiGroups: ["apps"]
+    resources: ["deployments"]
+    verbs: ["get", "list", "watch", "create", "update", "patch"]
+  # Droits sur les Services
+  - apiGroups: [""]
+    resources: ["services"]
+    verbs: ["get", "list", "watch", "create", "update", "patch"]
+  # Droits sur les Secrets (création des secrets DB et registry)
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["get", "list", "create", "update", "patch"]
+  # Droits sur les ConfigMaps
+  - apiGroups: [""]
+    resources: ["configmaps"]
+    verbs: ["get", "list"]
+  # Suivi des rollouts (ReplicaSets)
+  - apiGroups: ["apps"]
+    resources: ["replicasets"]
+    verbs: ["get", "list", "watch"]
+  # NetworkPolicies
+  - apiGroups: ["networking.k8s.io"]
+    resources: ["networkpolicies", "ingresses"]
+    verbs: ["get", "list", "watch", "create", "update", "patch"]
+
+---
+# --- RoleBinding : lier le role au ServiceAccount helpdesk-deploy ---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: helpdesk-deploy-binding
+  namespace: helpdesk
+  labels:
+    app.kubernetes.io/name: helpdesk
+subjects:
+  - kind: ServiceAccount
+    name: helpdesk-deploy
+    namespace: helpdesk
+roleRef:
+  kind: Role
+  name: helpdesk-deploy-role
+  apiGroup: rbac.authorization.k8s.io
