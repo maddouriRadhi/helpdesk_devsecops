@@ -27,12 +27,15 @@ services:
       DB_PASSWORD: ${DB_PASSWORD:?Définis DB_PASSWORD dans le fichier .env}
       PORT: "3000"
       CORS_ORIGIN: http://localhost:8080
+      JWT_SECRET: ${JWT_SECRET:-devsecops-secret-change-in-prod}
+      LOG_LEVEL: info
     depends_on:
       db:
         condition: service_healthy
     networks:
       - front
       - back
+      - observability
 
   web:
     build: .
@@ -44,9 +47,56 @@ services:
     networks:
       - front
 
+  # ── Observabilité ────────────────────────────────────────────────────────
+
+  loki:
+    image: grafana/loki:3.1.0
+    restart: unless-stopped
+    ports:
+      - "3100:3100"
+    volumes:
+      - ./observability/loki.yml:/etc/loki/local-config.yaml:ro
+      - loki-data:/tmp/loki
+    command: -config.file=/etc/loki/local-config.yaml
+    networks:
+      - observability
+
+  promtail:
+    image: grafana/promtail:3.1.0
+    restart: unless-stopped
+    volumes:
+      - ./observability/promtail.yml:/etc/promtail/config.yml:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: -config.file=/etc/promtail/config.yml
+    depends_on:
+      - loki
+    networks:
+      - observability
+
+  grafana:
+    image: grafana/grafana:11.1.0
+    restart: unless-stopped
+    ports:
+      - "3001:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_AUTH_ANONYMOUS_ENABLED: "false"
+    volumes:
+      - ./observability/grafana/provisioning:/etc/grafana/provisioning:ro
+      - grafana-data:/var/lib/grafana
+    depends_on:
+      - loki
+    networks:
+      - observability
+
 volumes:
   db-data:
+  loki-data:
+  grafana-data:
 
 networks:
   front:
   back:
+  observability:
+

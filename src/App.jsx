@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import "./App.css";
 
-const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3000/api";
+const BASE_URL = import.meta.env.VITE_API_URL || "/api";
 
 // ─── Helpers API ──────────────────────────────────────────────────────────────
 function entetes(token) {
@@ -192,7 +192,7 @@ function App() {
     setChargementComments(true);
     try {
       const donnees = await appelApi(
-        `${BASE_URL}/tickets/${encodeURIComponent(ticket.id)}/comments`,
+        `${BASE_URL}/tickets/${encodeURIComponent(ticket.id)}/commentaires`,
         { headers: entetes(token) }
       );
       setCommentaires(donnees);
@@ -210,7 +210,7 @@ function App() {
     setErreurComment("");
     try {
       const donnees = await appelApi(
-        `${BASE_URL}/tickets/${encodeURIComponent(ticketSelectionne.id)}/comments`,
+        `${BASE_URL}/tickets/${encodeURIComponent(ticketSelectionne.id)}/commentaires`,
         {
           method: "POST",
           headers: entetes(token),

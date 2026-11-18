@@ -34,8 +34,7 @@ build:
       - dist/
     expire_in: 1 day
 
-# 2. Test : analyse statique du frontend et vérification de syntaxe du backend
-#    (le projet n'a pas encore de tests unitaires : ajoute-les ici quand ils existent)
+# 2. Test : lint frontend + tests unitaires backend
 test:
   stage: test
   image: $NODE_IMAGE
@@ -44,6 +43,7 @@ test:
     - npm run lint
     - node --check backend/server.js
     - node --check backend/db.js
+    - cd backend && npm ci && npm test
 
 # 3. SAST : analyse du code source (OWASP Top 10)
 sast:

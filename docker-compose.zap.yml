@@ -1,0 +1,49 @@
+# =============================================================================
+# docker-compose.zap.yml — Stack OWASP ZAP pour scan DAST
+# =============================================================================
+# Usage :
+#   # Scan version VULNÉRABLE (server.vulnerable.js)
+#   docker-compose -f docker-compose.yml -f docker-compose.zap.yml run --rm zap-vulnerable
+#
+#   # Scan version SÉCURISÉE (server.js)
+#   docker-compose -f docker-compose.yml -f docker-compose.zap.yml run --rm zap-secure
+#
+# Les rapports HTML sont générés dans ./helpdesk/zap/reports/
+# =============================================================================
+
+services:
+  # Scan de la version VULNÉRABLE
+  zap-vulnerable:
+    image: ghcr.io/zaproxy/zaproxy:stable
+    volumes:
+      - ./helpdesk/zap/reports:/zap/reports:rw
+      - ./helpdesk/zap/zap-auth.yml:/zap/auth.yml:ro
+    command: >
+      zap-baseline.py
+        -t http://web:8080
+        -r /zap/reports/rapport-vulnerable.html
+        -J /zap/reports/rapport-vulnerable.json
+        -I
+        -l WARN
+        --hook=/zap/auth.yml
+    networks:
+      - front
+    depends_on:
+      - web
+
+  # Scan de la version SÉCURISÉE
+  zap-secure:
+    image: ghcr.io/zaproxy/zaproxy:stable
+    volumes:
+      - ./helpdesk/zap/reports:/zap/reports:rw
+    command: >
+      zap-baseline.py
+        -t http://web:8080
+        -r /zap/reports/rapport-secure.html
+        -J /zap/reports/rapport-secure.json
+        -I
+        -l WARN
+    networks:
+      - front
+    depends_on:
+      - web

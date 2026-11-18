@@ -1,6 +1,9 @@
 node_modules
+npm-debug.log
 .env
-.env.*
-npm-debug.log*
-Dockerfile
-.dockerignore
+tests
+*.test.js
+*.test-helper.js
+server.vulnerable.js
+.git
+.gitignore

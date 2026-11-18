@@ -7,7 +7,7 @@ RUN npm ci --include=dev
 
 COPY . .
 # L'API est appelée en chemin relatif : Nginx la redirige vers le backend
-ARG VITE_API_URL=/api/tickets
+ARG VITE_API_URL=/api
 ENV VITE_API_URL=$VITE_API_URL
 RUN npm run build
 
